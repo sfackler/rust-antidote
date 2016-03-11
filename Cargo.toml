@@ -2,5 +2,8 @@
 name = "antidote"
 version = "0.1.0"
 authors = ["Steven Fackler <sfackler@gmail.com>"]
-
-[dependencies]
+license = "MIT/Apache-2.0"
+description = "Poison-free versions of the standard library Mutex and RwLock types"
+repository = "https://github.com/sfackler/rust-hyper-socks"
+documentation = "https://sfackler.github.io/rust-antidote/doc/v0.1.0/antidote"
+readme = "README.md"
