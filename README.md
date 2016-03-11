@@ -1,5 +1,7 @@
 # rust-antidote
 
+[Documentation](https://sfackler.github.io/rust-antidote/doc/v0.1.0/antidote)
+
 Poison-free versions of the Rust standard library `Mutex` and `RwLock` types.
 
 ## License
