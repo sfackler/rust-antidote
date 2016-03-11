@@ -1,4 +1,7 @@
 //! Mutex and RwLock types that do not poison themselves.
+//!
+//! These types expose identical APIs to the standard library `Mutex` and
+//! `RwLock` except that they do not return `PoisonError`s.
 #![warn(missing_docs)]
 
 use std::error::Error;
