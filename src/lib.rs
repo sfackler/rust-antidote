@@ -2,6 +2,7 @@
 //!
 //! These types expose identical APIs to the standard library `Mutex` and
 //! `RwLock` except that they do not return `PoisonError`s.
+#![doc(html_root_url="https://sfackler.github.io/rust-antidote/doc/v0.1.0")]
 #![warn(missing_docs)]
 
 use std::error::Error;
