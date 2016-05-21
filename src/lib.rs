@@ -9,6 +9,10 @@ use std::error::Error;
 use std::fmt;
 use std::ops::{Deref, DerefMut};
 use std::sync;
+use std::time::Duration;
+
+#[doc(inline)]
+pub use std::sync::WaitTimeoutResult;
 
 /// Like `std::sync::Mutex` except that it does not poison itself.
 pub struct Mutex<T: ?Sized>(sync::Mutex<T>);
@@ -74,6 +78,45 @@ impl<'a, T: ?Sized> DerefMut for MutexGuard<'a, T> {
     #[inline]
     fn deref_mut(&mut self) -> &mut T {
         self.0.deref_mut()
+    }
+}
+
+/// Like `std::sync::Condvar`.
+pub struct Condvar(sync::Condvar);
+
+impl Condvar {
+    /// Like `std::sync::Condvar::new`.
+    #[inline]
+    pub fn new() -> Condvar {
+        Condvar(sync::Condvar::new())
+    }
+
+    /// Like `std::sync::Condvar::wait`.
+    #[inline]
+    pub fn wait<'a, T>(&self, guard: MutexGuard<'a, T>) -> MutexGuard<'a, T> {
+        MutexGuard(self.0.wait(guard.0).unwrap_or_else(|e| e.into_inner()))
+    }
+
+    /// Like `std::sync::Condvar::wait_timeout`.
+    #[inline]
+    pub fn wait_timeout<'a, T>(&self,
+                               guard: MutexGuard<'a, T>,
+                               dur: Duration)
+                               -> (MutexGuard<'a, T>, WaitTimeoutResult) {
+        let (guard, result) = self.0.wait_timeout(guard.0, dur).unwrap_or_else(|e| e.into_inner());
+        (MutexGuard(guard), result)
+    }
+
+    /// Like `std::sync::Condvar::notify_one`.
+    #[inline]
+    pub fn notify_one(&self) {
+        self.0.notify_one()
+    }
+
+    /// Like `std::sync::Condvar::notify_all`.
+    #[inline]
+    pub fn notify_all(&self) {
+        self.0.notify_all()
     }
 }
 
