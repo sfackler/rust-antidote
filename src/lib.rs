@@ -92,7 +92,7 @@ impl fmt::Display for TryLockError {
 
 impl Error for TryLockError {
     fn description(&self) -> &str {
-        "try_lock failed because the operation would block"
+        "lock call failed because the operation would block"
     }
 }
 
