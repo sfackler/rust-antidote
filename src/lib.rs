@@ -13,6 +13,12 @@ use std::sync;
 /// Like `std::sync::Mutex` except that it does not poison itself.
 pub struct Mutex<T: ?Sized>(sync::Mutex<T>);
 
+impl<T: ?Sized + fmt::Debug> fmt::Debug for Mutex<T> {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Debug::fmt(&self.0, fmt)
+    }
+}
+
 impl<T> Mutex<T> {
     /// Like `std::sync::Mutex::new`.
     #[inline]
@@ -92,6 +98,12 @@ impl Error for TryLockError {
 
 /// Like `std::sync::RwLock` except that it does not poison itself.
 pub struct RwLock<T: ?Sized>(sync::RwLock<T>);
+
+impl<T: ?Sized + fmt::Debug> fmt::Debug for RwLock<T> {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Debug::fmt(&self.0, fmt)
+    }
+}
 
 impl<T> RwLock<T> {
     /// Like `std::sync::RwLock::new`.
