@@ -81,6 +81,12 @@ impl<'a, T: ?Sized> DerefMut for MutexGuard<'a, T> {
     }
 }
 
+impl<T: Default> Default for Mutex<T> {
+    fn default() -> Self {
+        Mutex(Default::default())
+    }
+}
+
 /// Like `std::sync::Condvar`.
 pub struct Condvar(sync::Condvar);
 
