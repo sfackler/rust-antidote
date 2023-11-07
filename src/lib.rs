@@ -83,7 +83,7 @@ impl<'a, T: ?Sized> DerefMut for MutexGuard<'a, T> {
 
 impl<T: Default> Default for Mutex<T> {
     fn default() -> Self {
-        Self(Default::default())
+        Mutex(Default::default())
     }
 }
 
