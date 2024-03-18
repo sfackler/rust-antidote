@@ -7,3 +7,6 @@ description = "Poison-free versions of the standard library Mutex and RwLock typ
 repository = "https://github.com/sfackler/rust-antidote"
 documentation = "https://sfackler.github.io/rust-antidote/doc/v1.0.0/antidote"
 readme = "README.md"
+
+[dependencies]
+stable_deref_trait = { version = "1.2.0", optional = true }

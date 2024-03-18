@@ -87,6 +87,9 @@ impl<T: Default> Default for Mutex<T> {
     }
 }
 
+#[cfg(feature = "stable_deref_trait")]
+unsafe impl<'a, T: ?Sized> stable_deref_trait::StableDeref for MutexGuard<'a, T> {} 
+
 /// Like `std::sync::Condvar`.
 pub struct Condvar(sync::Condvar);
 
