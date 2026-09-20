@@ -1,9 +1,12 @@
 [package]
 name = "antidote"
-version = "1.0.0"
+version = "2.0.0"
+edition = "2021"
+rust-version = "1.63"
+
+# Metadata for publication
 authors = ["Steven Fackler <sfackler@gmail.com>"]
-license = "MIT/Apache-2.0"
 description = "Poison-free versions of the standard library Mutex and RwLock types"
+license = "MIT OR Apache-2.0"
 repository = "https://github.com/sfackler/rust-antidote"
-documentation = "https://sfackler.github.io/rust-antidote/doc/v1.0.0/antidote"
 readme = "README.md"

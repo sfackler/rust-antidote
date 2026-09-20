@@ -1,27 +1,21 @@
-//! Mutex and RwLock types that do not poison themselves.
+//! `Mutex` and `RwLock` types that do not poison themselves.
 //!
 //! These types expose identical APIs to the standard library `Mutex` and
 //! `RwLock` except that they do not return `PoisonError`s.
-#![doc(html_root_url="https://sfackler.github.io/rust-antidote/doc/v1.0.0")]
-#![warn(missing_docs)]
-
-use std::error::Error;
-use std::fmt;
-use std::ops::{Deref, DerefMut};
-use std::sync;
-use std::time::Duration;
 
 #[doc(inline)]
 pub use std::sync::WaitTimeoutResult;
+use std::{
+    fmt,
+    ops::{Deref, DerefMut},
+    sync,
+    time::Duration,
+};
 
+#[derive(Debug, Default)]
+#[repr(transparent)]
 /// Like `std::sync::Mutex` except that it does not poison itself.
 pub struct Mutex<T: ?Sized>(sync::Mutex<T>);
-
-impl<T: ?Sized + fmt::Debug> fmt::Debug for Mutex<T> {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Debug::fmt(&self.0, fmt)
-    }
-}
 
 impl<T> Mutex<T> {
     /// Like `std::sync::Mutex::new`.
@@ -40,13 +34,13 @@ impl<T> Mutex<T> {
 impl<T: ?Sized> Mutex<T> {
     /// Like `std::sync::Mutex::lock`.
     #[inline]
-    pub fn lock<'a>(&'a self) -> MutexGuard<'a, T> {
+    pub fn lock(&self) -> MutexGuard<'_, T> {
         MutexGuard(self.0.lock().unwrap_or_else(|e| e.into_inner()))
     }
 
     /// Like `std::sync::Mutex::try_lock`.
     #[inline]
-    pub fn try_lock<'a>(&'a self) -> TryLockResult<MutexGuard<'a, T>> {
+    pub fn try_lock(&self) -> TryLockResult<MutexGuard<'_, T>> {
         match self.0.try_lock() {
             Ok(t) => Ok(MutexGuard(t)),
             Err(sync::TryLockError::Poisoned(e)) => Ok(MutexGuard(e.into_inner())),
@@ -61,11 +55,13 @@ impl<T: ?Sized> Mutex<T> {
     }
 }
 
-/// Like `std::sync::MutexGuard`.
+#[derive(Debug)]
+#[repr(transparent)]
 #[must_use]
+/// Like `std::sync::MutexGuard`.
 pub struct MutexGuard<'a, T: ?Sized + 'a>(sync::MutexGuard<'a, T>);
 
-impl<'a, T: ?Sized> Deref for MutexGuard<'a, T> {
+impl<T: ?Sized> Deref for MutexGuard<'_, T> {
     type Target = T;
 
     #[inline]
@@ -74,19 +70,15 @@ impl<'a, T: ?Sized> Deref for MutexGuard<'a, T> {
     }
 }
 
-impl<'a, T: ?Sized> DerefMut for MutexGuard<'a, T> {
+impl<T: ?Sized> DerefMut for MutexGuard<'_, T> {
     #[inline]
     fn deref_mut(&mut self) -> &mut T {
         self.0.deref_mut()
     }
 }
 
-impl<T: Default> Default for Mutex<T> {
-    fn default() -> Self {
-        Mutex(Default::default())
-    }
-}
-
+#[derive(Debug, Default)]
+#[repr(transparent)]
 /// Like `std::sync::Condvar`.
 pub struct Condvar(sync::Condvar);
 
@@ -105,11 +97,15 @@ impl Condvar {
 
     /// Like `std::sync::Condvar::wait_timeout`.
     #[inline]
-    pub fn wait_timeout<'a, T>(&self,
-                               guard: MutexGuard<'a, T>,
-                               dur: Duration)
-                               -> (MutexGuard<'a, T>, WaitTimeoutResult) {
-        let (guard, result) = self.0.wait_timeout(guard.0, dur).unwrap_or_else(|e| e.into_inner());
+    pub fn wait_timeout<'a, T>(
+        &self,
+        guard: MutexGuard<'a, T>,
+        dur: Duration,
+    ) -> (MutexGuard<'a, T>, WaitTimeoutResult) {
+        let (guard, result) = self
+            .0
+            .wait_timeout(guard.0, dur)
+            .unwrap_or_else(|e| e.into_inner());
         (MutexGuard(guard), result)
     }
 
@@ -135,24 +131,14 @@ pub struct TryLockError(());
 
 impl fmt::Display for TryLockError {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        fmt.write_str(self.description())
+        fmt.write_str("lock call failed because the operation would block")
     }
 }
 
-impl Error for TryLockError {
-    fn description(&self) -> &str {
-        "lock call failed because the operation would block"
-    }
-}
-
+#[derive(Debug, Default)]
+#[repr(transparent)]
 /// Like `std::sync::RwLock` except that it does not poison itself.
 pub struct RwLock<T: ?Sized>(sync::RwLock<T>);
-
-impl<T: ?Sized + fmt::Debug> fmt::Debug for RwLock<T> {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        fmt::Debug::fmt(&self.0, fmt)
-    }
-}
 
 impl<T> RwLock<T> {
     /// Like `std::sync::RwLock::new`.
@@ -163,7 +149,10 @@ impl<T> RwLock<T> {
 
     /// Like `std::sync::RwLock::into_inner`.
     #[inline]
-    pub fn into_inner(self) -> T where T: Sized {
+    pub fn into_inner(self) -> T
+    where
+        T: Sized,
+    {
         self.0.into_inner().unwrap_or_else(|e| e.into_inner())
     }
 }
@@ -171,13 +160,13 @@ impl<T> RwLock<T> {
 impl<T: ?Sized> RwLock<T> {
     /// Like `std::sync::RwLock::read`.
     #[inline]
-    pub fn read<'a>(&'a self) -> RwLockReadGuard<'a, T> {
+    pub fn read(&self) -> RwLockReadGuard<'_, T> {
         RwLockReadGuard(self.0.read().unwrap_or_else(|e| e.into_inner()))
     }
 
     /// Like `std::sync::RwLock::try_read`.
     #[inline]
-    pub fn try_read<'a>(&'a self) -> TryLockResult<RwLockReadGuard<'a, T>> {
+    pub fn try_read(&self) -> TryLockResult<RwLockReadGuard<'_, T>> {
         match self.0.try_read() {
             Ok(t) => Ok(RwLockReadGuard(t)),
             Err(sync::TryLockError::Poisoned(e)) => Ok(RwLockReadGuard(e.into_inner())),
@@ -187,13 +176,13 @@ impl<T: ?Sized> RwLock<T> {
 
     /// Like `std::sync::RwLock::write`.
     #[inline]
-    pub fn write<'a>(&'a self) -> RwLockWriteGuard<'a, T> {
+    pub fn write(&self) -> RwLockWriteGuard<'_, T> {
         RwLockWriteGuard(self.0.write().unwrap_or_else(|e| e.into_inner()))
     }
 
     /// Like `std::sync::RwLock::try_write`.
     #[inline]
-    pub fn try_write<'a>(&'a self) -> TryLockResult<RwLockWriteGuard<'a, T>> {
+    pub fn try_write(&self) -> TryLockResult<RwLockWriteGuard<'_, T>> {
         match self.0.try_write() {
             Ok(t) => Ok(RwLockWriteGuard(t)),
             Err(sync::TryLockError::Poisoned(e)) => Ok(RwLockWriteGuard(e.into_inner())),
@@ -208,11 +197,13 @@ impl<T: ?Sized> RwLock<T> {
     }
 }
 
-/// Like `std::sync::RwLockReadGuard`.
+#[derive(Debug)]
+#[repr(transparent)]
 #[must_use]
+/// Like `std::sync::RwLockReadGuard`.
 pub struct RwLockReadGuard<'a, T: ?Sized + 'a>(sync::RwLockReadGuard<'a, T>);
 
-impl<'a, T: ?Sized> Deref for RwLockReadGuard<'a, T> {
+impl<T: ?Sized> Deref for RwLockReadGuard<'_, T> {
     type Target = T;
 
     #[inline]
@@ -221,11 +212,13 @@ impl<'a, T: ?Sized> Deref for RwLockReadGuard<'a, T> {
     }
 }
 
-/// Like `std::sync::RwLockWriteGuard`.
+#[derive(Debug)]
+#[repr(transparent)]
 #[must_use]
+/// Like `std::sync::RwLockWriteGuard`.
 pub struct RwLockWriteGuard<'a, T: ?Sized + 'a>(sync::RwLockWriteGuard<'a, T>);
 
-impl<'a, T: ?Sized> Deref for RwLockWriteGuard<'a, T> {
+impl<T: ?Sized> Deref for RwLockWriteGuard<'_, T> {
     type Target = T;
 
     #[inline]
@@ -234,7 +227,7 @@ impl<'a, T: ?Sized> Deref for RwLockWriteGuard<'a, T> {
     }
 }
 
-impl<'a, T: ?Sized> DerefMut for RwLockWriteGuard<'a, T> {
+impl<T: ?Sized> DerefMut for RwLockWriteGuard<'_, T> {
     #[inline]
     fn deref_mut(&mut self) -> &mut T {
         self.0.deref_mut()
