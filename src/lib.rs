@@ -26,7 +26,7 @@ impl<T: ?Sized + fmt::Debug> fmt::Debug for Mutex<T> {
 impl<T> Mutex<T> {
     /// Like `std::sync::Mutex::new`.
     #[inline]
-    pub fn new(t: T) -> Mutex<T> {
+    pub const fn new(t: T) -> Mutex<T> {
         Mutex(sync::Mutex::new(t))
     }
 
@@ -93,7 +93,7 @@ pub struct Condvar(sync::Condvar);
 impl Condvar {
     /// Like `std::sync::Condvar::new`.
     #[inline]
-    pub fn new() -> Condvar {
+    pub const fn new() -> Condvar {
         Condvar(sync::Condvar::new())
     }
 
@@ -157,7 +157,7 @@ impl<T: ?Sized + fmt::Debug> fmt::Debug for RwLock<T> {
 impl<T> RwLock<T> {
     /// Like `std::sync::RwLock::new`.
     #[inline]
-    pub fn new(t: T) -> RwLock<T> {
+    pub const fn new(t: T) -> RwLock<T> {
         RwLock(sync::RwLock::new(t))
     }
 
